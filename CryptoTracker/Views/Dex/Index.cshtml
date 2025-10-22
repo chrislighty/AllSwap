@@ -23,4 +23,64 @@
     <p class="mt-3">
         Estimated Output: <strong>@Model.EstimatedAmountOut</strong> @Model.TokenOut
     </p>
+    <button class="btn btn-success" onclick="swapTokens('@Model.TokenIn', '@Model.TokenOut', @Model.AmountIn)">Execute Swap</button>
+}
+
+<hr />
+
+<button class="btn btn-secondary" onclick="connectWallet()">Connect MetaMask</button>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script>
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    window.web3 = new Web3(window.ethereum);
+                    alert('Wallet connected!');
+                } catch (error) {
+                    alert('User denied account access');
+                }
+            } else {
+                alert('Install MetaMask first');
+            }
+        }
+
+        async function swapTokens(tokenIn, tokenOut, amountIn) {
+            if (!window.web3) {
+                alert('Please connect your wallet first.');
+                return;
+            }
+
+            const accounts = await web3.eth.getAccounts();
+            if (accounts.length === 0) {
+                alert('No accounts found. Make sure MetaMask is unlocked.');
+                return;
+            }
+
+            const routerAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; // Uniswap V2 Router
+            const routerAbi = [{"constant":false,"inputs":[{"name":"amountIn","type":"uint256"},{"name":"amountOutMin","type":"uint256"},{"name":"path","type":"address[]"},{"name":"to","type":"address"},{"name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokens","outputs":[{"name":"amounts","type":"uint256[]"}],"payable":false,"stateMutability":"nonpayable","type":"function"}];
+
+            const contract = new web3.eth.Contract(routerAbi, routerAddress);
+            const amountInWei = web3.utils.toWei(amountIn.toString(), 'ether');
+            const path = [tokenIn, tokenOut];
+            const to = accounts[0];
+            const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 minutes from now
+
+            try {
+                await contract.methods.swapExactTokensForTokens(
+                    amountInWei,
+                    0, // NOTE: For a real application, you should calculate a proper amountOutMin to protect against slippage.
+                    path,
+                    to,
+                    deadline
+                ).send({ from: accounts[0] });
+                alert('Swap successful!');
+            } catch (error) {
+                console.error('Swap failed:', error);
+                alert('Swap failed. See console for details.');
+            }
+        }
+    </script>
 }
