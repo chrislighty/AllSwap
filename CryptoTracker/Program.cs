@@ -6,8 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ICoinGeckoService, CoinGeckoService>();
-builder.Services.AddScoped<IDexService, DexService>(provider =>
-    new DexService(provider.GetRequiredService<IConfiguration>()));
+builder.Services.AddScoped<IDexService, DexService>();
 
 var app = builder.Build();
 

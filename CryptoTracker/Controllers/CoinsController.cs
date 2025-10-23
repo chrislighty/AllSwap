@@ -16,5 +16,15 @@ namespace CryptoTracker.Controllers
             var coins = await _coinService.GetTopCoinsAsync();
             return View(coins);
         }
+
+        public IActionResult Chart(string coinId)
+        {
+            if (string.IsNullOrEmpty(coinId))
+            {
+                return RedirectToAction("Index");
+            }
+            ViewBag.CoinId = coinId;
+            return View();
+        }
     }
 }

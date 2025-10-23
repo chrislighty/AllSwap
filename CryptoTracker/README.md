@@ -33,10 +33,10 @@ CryptoTracker is a web application that provides real-time cryptocurrency inform
 ### Configuration
 
 1.  **Infura API Key:**
-    Open the `CryptoTracker/Services/DexService.cs` file and replace `"https://mainnet.infura.io/v3/YOUR_INFURA_KEY"` with your own Infura project URL.
+    Open the `CryptoTracker/appsettings.json` file and replace `"https://mainnet.infura.io/v3/YOUR_INFURA_KEY"` in the `Infura:MainnetUrl` field with your own Infura project URL.
 
 2.  **Application Settings:**
-    The `CryptoTracker/appsettings.json` file contains the base URL for the CoinGecko API. No changes are required for this to work.
+    The `appsettings.json` file also contains the base URL for the CoinGecko API. No changes are required for this to work.
 
 ## Usage
 

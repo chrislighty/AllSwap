@@ -1,0 +1,23 @@
+@model List<CryptoTracker.Models.Portfolio>
+
+<h1>My Portfolio</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Token</th>
+            <th>Amount</th>
+            <th>Last Updated</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TokenSymbol</td>
+                <td>@item.Amount.ToString("N8")</td>
+                <td>@item.LastUpdated.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>
