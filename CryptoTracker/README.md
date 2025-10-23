@@ -35,8 +35,25 @@ CryptoTracker is a web application that provides real-time cryptocurrency inform
 1.  **Infura API Key:**
     Open the `CryptoTracker/appsettings.json` file and replace `"https://mainnet.infura.io/v3/YOUR_INFURA_KEY"` in the `Infura:MainnetUrl` field with your own Infura project URL.
 
-2.  **Application Settings:**
+2.  **Database Connection:**
+    Open the `CryptoTracker/appsettings.json` file and add a `ConnectionStrings` section with your SQL Server connection string:
+    ```json
+    "ConnectionStrings": {
+      "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CryptoTracker;Trusted_Connection=True;MultipleActiveResultSets=true"
+    },
+    ```
+
+3.  **Application Settings:**
     The `appsettings.json` file also contains the base URL for the CoinGecko API. No changes are required for this to work.
+
+## Database Migrations
+
+This project uses Entity Framework Core for database management. To create and apply the database migrations, run the following commands from the `CryptoTracker` directory:
+
+```bash
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
 
 ## Usage
 

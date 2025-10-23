@@ -7,9 +7,12 @@ namespace CryptoTracker.Controllers
     public class DexController : Controller
     {
         private readonly IDexService _dexService;
-        public DexController(IDexService dexService)
+        private readonly IPortfolioService _portfolioService;
+
+        public DexController(IDexService dexService, IPortfolioService portfolioService)
         {
             _dexService = dexService;
+            _portfolioService = portfolioService;
         }
 
         [HttpGet]
