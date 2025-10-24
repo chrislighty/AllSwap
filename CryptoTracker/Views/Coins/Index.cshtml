@@ -17,7 +17,7 @@
         {
             <tr>
                 <td>@coin.Name (@coin.Symbol)</td>
-                <td>@coin.Current_price.ToString("C")</td>
+                <td id="price-@coin.Symbol.ToLower()">@coin.Current_price.ToString("C")</td>
                 <td>@coin.Market_cap.ToString("C")</td>
                 <td>@coin.Total_volume.ToString("C")</td>
                 <td>@coin.Price_change_percentage_24h.ToString("F2")%</td>
@@ -26,3 +26,43 @@
         }
     </tbody>
 </table>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/priceHub")
+                .build();
+
+            connection.on("ReceivePriceUpdate", function (prices) {
+                prices.forEach(coin => {
+                    const priceElement = document.getElementById(`price-${coin.symbol}`);
+                    if (priceElement) {
+                        const oldPrice = parseFloat(priceElement.innerText.replace('$', ''));
+                        const newPrice = coin.current_price;
+
+                        priceElement.innerText = `$${newPrice.toFixed(2)}`;
+
+                        if (newPrice > oldPrice) {
+                            priceElement.classList.add('text-success');
+                            priceElement.classList.remove('text-danger');
+                        } else if (newPrice < oldPrice) {
+                            priceElement.classList.add('text-danger');
+                            priceElement.classList.remove('text-success');
+                        }
+
+                        // Remove the color class after a short delay
+                        setTimeout(() => {
+                            priceElement.classList.remove('text-success', 'text-danger');
+                        }, 2000);
+                    }
+                });
+            });
+
+            connection.start().catch(function (err) {
+                return console.error(err.toString());
+            });
+        });
+    </script>
+}

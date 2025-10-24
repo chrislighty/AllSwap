@@ -10,9 +10,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache(); // Add this line to register the memory cache service
+using CryptoTracker.Hubs;
+using CryptoTracker.Workers;
+
 builder.Services.AddScoped<ICoinGeckoService, CoinGeckoService>();
 builder.Services.AddScoped<IDexService, DexService>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<PriceUpdateWorker>();
 
 
 var app = builder.Build();
@@ -31,5 +37,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Coins}/{action=Index}/{id?}");
+
+app.MapHub<PriceHub>("/priceHub");
 
 app.Run();
