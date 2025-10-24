@@ -31,5 +31,24 @@ namespace CryptoTracker.Controllers
             }
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RecordSwap([FromBody] SwapResult result)
+        {
+            if (result == null || result.AmountIn <= 0 || result.AmountOut <= 0)
+            {
+                return BadRequest("Invalid swap data.");
+            }
+
+            const string demoUserId = "demo_user"; // In a real app, you would get this from authentication.
+
+            // Decrease the balance of the token sold
+            await _portfolioService.UpdatePortfolioAsync(demoUserId, result.TokenIn, -result.AmountIn);
+
+            // Increase the balance of the token bought
+            await _portfolioService.UpdatePortfolioAsync(demoUserId, result.TokenOut, result.AmountOut);
+
+            return Ok(new { message = "Portfolio updated successfully." });
+        }
     }
 }

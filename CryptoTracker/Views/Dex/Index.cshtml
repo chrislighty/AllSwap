@@ -69,17 +69,76 @@
             const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 minutes from now
 
             try {
-                await contract.methods.swapExactTokensForTokens(
+                // ERC20 Approval Step
+                const erc20Abi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}];
+                const tokenContract = new web3.eth.Contract(erc20Abi, tokenIn);
+
+                console.log(`Approving ${amountIn} of ${tokenIn} for the Uniswap router...`);
+                await tokenContract.methods.approve(routerAddress, amountInWei).send({ from: accounts[0] });
+                console.log('Approval successful.');
+
+                // Swap Step
+                console.log('Executing swap...');
+                const receipt = await contract.methods.swapExactTokensForTokens(
                     amountInWei,
                     0, // NOTE: For a real application, you should calculate a proper amountOutMin to protect against slippage.
                     path,
                     to,
                     deadline
                 ).send({ from: accounts[0] });
+
                 alert('Swap successful!');
+
+                // After the swap is successful, record it in the portfolio
+                await recordSwapInPortfolio(tokenIn, tokenOut, amountIn, receipt);
+
             } catch (error) {
                 console.error('Swap failed:', error);
                 alert('Swap failed. See console for details.');
+            }
+        }
+
+        async function recordSwapInPortfolio(tokenIn, tokenOut, amountIn, receipt) {
+            // Parse the transaction receipt to find the actual amount of tokens received.
+            const swapEventTopic = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'; // Sync event signature for Uniswap V2
+            const swapEvent = receipt.events.find(e => e.raw.topics[0] === swapEventTopic);
+
+            let amountOut = 0;
+            if (swapEvent) {
+                // This is a simplified way to determine amountOut. A robust solution
+                // would need to check the token addresses involved in the event.
+                // For this demo, we assume the last amount in the event is the amountOut.
+                const decoded = web3.eth.abi.decodeLog(['uint256', 'uint256'], swapEvent.raw.data, []);
+                amountOut = web3.utils.fromWei(decoded[1].toString(), 'ether');
+            } else {
+                // Fallback to the estimate if the event isn't found (less accurate)
+                amountOut = @Model.EstimatedAmountOut;
+            }
+
+            const swapData = {
+                tokenIn: tokenIn,
+                amountIn: amountIn,
+                tokenOut: tokenOut,
+                amountOut: amountOut
+            };
+
+            try {
+                const response = await fetch('/Dex/RecordSwap', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(swapData),
+                });
+
+                if (response.ok) {
+                    console.log('Portfolio updated.');
+                    window.location.href = '/Portfolio'; // Redirect to portfolio page
+                } else {
+                    console.error('Failed to update portfolio:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error updating portfolio:', error);
             }
         }
     </script>
